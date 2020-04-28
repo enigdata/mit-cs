@@ -112,12 +112,12 @@ def get_best_path(digraph, start, end, path, max_dist_outdoors, best_dist,
         raise ValueError('Not valid Node')
 
     path[0] = path[0] + [start]
-    
+
     if path[2] > max_dist_outdoors:
         return None 
 
     if start == end:
-        return path[0], path[1], path[2]
+        return path[0], path[1]
 
     for edge in digraph.get_edges_for_node(digraph.get_node(start)):
         current_node = edge.get_destination().get_name()
@@ -178,10 +178,6 @@ def directed_dfs(digraph, start, end, max_total_dist, max_dist_outdoors):
             raise ValueError('Solution exceeded max total distance allowed.')
 
     return result[0]
-
-
-
-    
 
 
 # ================================================================
