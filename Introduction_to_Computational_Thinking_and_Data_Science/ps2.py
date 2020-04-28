@@ -13,6 +13,7 @@ from graph import Digraph, Node, WeightedEdge
 # Problem 2a: Designing your graph
 
 # Problem 2b: Implementing load_map
+
 def load_map(map_filename):
     """
     Parses the map file and constructs a directed graph
@@ -107,9 +108,35 @@ def get_best_path(digraph, start, end, path, max_dist_outdoors, best_dist,
         If there exists no path that satisfies max_total_dist and
         max_dist_outdoors constraints, then return None.
     """
-    # TODO
-    pass
+    if not (digraph.has_node(digraph.get_node(start)) and digraph.has_node(digraph.get_node(end))):
+        raise ValueError('Not valid Node')
 
+    path[0] = path[0] + [start]
+    
+    if path[2] > max_dist_outdoors:
+        return None 
+
+    if start == end:
+        return path[0], path[1], path[2]
+
+    for edge in digraph.get_edges_for_node(digraph.get_node(start)):
+        current_node = edge.get_destination().get_name()
+        if current_node not in path[0]:
+            total_distance = path[1] + edge.get_total_distance()
+            outdoor_distance = path[2] + edge.get_outdoor_distance()
+            updated_path = [path[0], total_distance, outdoor_distance]
+            newPath = get_best_path(digraph, current_node, end, updated_path, max_dist_outdoors, best_dist,
+                  best_path)
+            if newPath is not None:
+                if (best_path is None or newPath[1] < best_dist):
+                    best_path, best_dist = newPath[0], newPath[1]
+        else:
+            print(f'Already visited {current_node}')
+
+    if best_path is not None:
+        return best_path, best_dist 
+    else:
+        return None 
 
 # Problem 3c: Implement directed_dfs
 def directed_dfs(digraph, start, end, max_total_dist, max_dist_outdoors):
@@ -140,8 +167,21 @@ def directed_dfs(digraph, start, end, max_total_dist, max_dist_outdoors):
         If there exists no path that satisfies max_total_dist and
         max_dist_outdoors constraints, then raises a ValueError.
     """
-    # TODO
-    pass
+
+    path = [[], 0, 0]
+    result = get_best_path(digraph, start, end, path, max_dist_outdoors, best_dist=None,
+                  best_path=None)
+    if not result:
+        raise ValueError('No solution found.')
+    else:
+        if result[1] > max_total_dist:
+            raise ValueError('Solution exceeded max total distance allowed.')
+
+    return result[0]
+
+
+
+    
 
 
 # ================================================================
@@ -163,69 +203,69 @@ class Ps2Test(unittest.TestCase):
         all_edges = set(all_edges)
         self.assertEqual(len(all_edges), 129)
 
-    # def _print_path_description(self, start, end, total_dist, outdoor_dist):
-    #     constraint = ""
-    #     if outdoor_dist != Ps2Test.LARGE_DIST:
-    #         constraint = "without walking more than {}m outdoors".format(
-    #             outdoor_dist)
-    #     if total_dist != Ps2Test.LARGE_DIST:
-    #         if constraint:
-    #             constraint += ' or {}m total'.format(total_dist)
-    #         else:
-    #             constraint = "without walking more than {}m total".format(
-    #                 total_dist)
+    def _print_path_description(self, start, end, total_dist, outdoor_dist):
+        constraint = ""
+        if outdoor_dist != Ps2Test.LARGE_DIST:
+            constraint = "without walking more than {}m outdoors".format(
+                outdoor_dist)
+        if total_dist != Ps2Test.LARGE_DIST:
+            if constraint:
+                constraint += ' or {}m total'.format(total_dist)
+            else:
+                constraint = "without walking more than {}m total".format(
+                    total_dist)
 
-    #     print("------------------------")
-    #     print("Shortest path from Building {} to {} {}".format(
-    #         start, end, constraint))
+        print("------------------------")
+        print("Shortest path from Building {} to {} {}".format(
+            start, end, constraint))
 
-    # def _test_path(self,
-    #                expectedPath,
-    #                total_dist=LARGE_DIST,
-    #                outdoor_dist=LARGE_DIST):
-    #     start, end = expectedPath[0], expectedPath[-1]
-    #     self._print_path_description(start, end, total_dist, outdoor_dist)
-    #     dfsPath = directed_dfs(self.graph, start, end, total_dist, outdoor_dist)
-    #     print("Expected: ", expectedPath)
-    #     print("DFS: ", dfsPath)
-    #     self.assertEqual(expectedPath, dfsPath)
+    def _test_path(self,
+                   expectedPath,
+                   total_dist=LARGE_DIST,
+                   outdoor_dist=LARGE_DIST):
+        start, end = expectedPath[0], expectedPath[-1]
+        self._print_path_description(start, end, total_dist, outdoor_dist)
+        dfsPath = directed_dfs(self.graph, start, end, total_dist, outdoor_dist)
+        print("Expected: ", expectedPath)
+        print("DFS: ", dfsPath)
+        self.assertEqual(expectedPath, dfsPath)
 
-    # def _test_impossible_path(self,
-    #                           start,
-    #                           end,
-    #                           total_dist=LARGE_DIST,
-    #                           outdoor_dist=LARGE_DIST):
-    #     self._print_path_description(start, end, total_dist, outdoor_dist)
-    #     with self.assertRaises(ValueError):
-    #         directed_dfs(self.graph, start, end, total_dist, outdoor_dist)
+    def _test_impossible_path(self,
+                              start,
+                              end,
+                              total_dist=LARGE_DIST,
+                              outdoor_dist=LARGE_DIST):
+        self._print_path_description(start, end, total_dist, outdoor_dist)
+        with self.assertRaises(ValueError):
+            directed_dfs(self.graph, start, end, total_dist, outdoor_dist)
 
-    # def test_path_one_step(self):
-    #     self._test_path(expectedPath=['32', '56'])
+    def test_path_one_step(self):
+        self._test_path(expectedPath=['32', '56'])
 
-    # def test_path_no_outdoors(self):
-    #     self._test_path(
-    #         expectedPath=['32', '36', '26', '16', '56'], outdoor_dist=0)
+    def test_path_no_outdoors(self):
+        self._test_path(
+            expectedPath=['32', '36', '26', '16', '56'], outdoor_dist=0)
 
-    # def test_path_multi_step(self):
-    #     self._test_path(expectedPath=['2', '3', '7', '9'])
+    def test_path_multi_step(self):
+        self._test_path(expectedPath=['2', '3', '7', '9'])
 
-    # def test_path_multi_step_no_outdoors(self):
-    #     self._test_path(
-    #         expectedPath=['2', '4', '10', '13', '9'], outdoor_dist=0)
+    def test_path_multi_step_no_outdoors(self):
+        self._test_path(
+            expectedPath=['2', '4', '10', '13', '9'], outdoor_dist=0)
 
-    # def test_path_multi_step2(self):
-    #     self._test_path(expectedPath=['1', '4', '12', '32'])
+    def test_path_multi_step2(self):
+        self._test_path(expectedPath=['1', '4', '12', '32'])
 
-    # def test_path_multi_step_no_outdoors2(self):
-    #     self._test_path(
-    #         expectedPath=['1', '3', '10', '4', '12', '24', '34', '36', '32'],
-    #         outdoor_dist=0)
+    def test_path_multi_step_no_outdoors2(self):
+        self._test_path(
+            expectedPath=['1', '3', '10', '4', '12', '24', '34', '36', '32'],
+            outdoor_dist=0)
 
-    # def test_impossible_path1(self):
-    #     self._test_impossible_path('8', '50', outdoor_dist=0)
+    def test_impossible_path1(self):
+        self._test_impossible_path('8', '50', outdoor_dist=0)
 
-    # def test_impossible_path2(self):
-    #     self._test_impossible_path('10', '32', total_dist=100)
+    def test_impossible_path2(self):
+        self._test_impossible_path('10', '32', total_dist=100)
 
 
 if __name__ == "__main__":

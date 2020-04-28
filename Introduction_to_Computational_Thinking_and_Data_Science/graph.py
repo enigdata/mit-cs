@@ -98,7 +98,6 @@ class Digraph(object):
             self.nodes.add(node)
             self.edges[node] = []
 
-
     def add_edge(self, edge):
         """Adds an Edge or WeightedEdge instance to the Digraph. Raises a
         ValueError if either of the nodes associated with the edge is not
@@ -108,6 +107,12 @@ class Digraph(object):
         else:
             next_nodes = self.edges.get(edge.get_source(), [])
             next_nodes.append(edge)
+
+    def get_node(self, name):
+        for n in self.nodes:
+            if n.get_name() == name:
+                return n 
+        raise NameError(name)
 
 
 
