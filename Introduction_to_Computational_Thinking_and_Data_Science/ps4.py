@@ -191,12 +191,15 @@ class Patient(object):
         pop_density = len(surviving_bacteria)/float(self.max_pop)
 
         ### Step 3 & 4
-        for bacteria in self.bacteria:
+        result_list = surviving_bacteria[:]
+        for bacteria in surviving_bacteria:
             child = bacteria.reproduce(pop_density)
             if child:
-                self.bacteria.append(child)
+                result_list.append(child)
 
+        self.bacteria = result_list
         return len(self.bacteria)
+        
 ##########################
 # PROBLEM 2
 ##########################
