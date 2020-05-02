@@ -1,3 +1,4 @@
+import random 
 from intro_machine_learning import minkowskiDist
 
 ### Class Cluster
@@ -82,6 +83,55 @@ def Cluster(object):
         return result[:-2] # remove trailing comma and space at the end 
 
 ########### K-mean Clustering
+def kmeans(examples, k, verbose = False):
+    initialCentroids = random.sample(examples, k)
+    clusters = []
+    for e in initialCentroids:
+        clusters.append(Cluster([e]))
+
+    #Iterate until centroids do not change 
+    converged = False
+    numIterations = 0 
+    while not converged:
+        numIterations += 1 
+        newClusters = []
+        for i in range(k):
+            newClusters.append([])
+
+        #Associate each example with closest centroid
+        for e in examples:
+            #Find the centroid closest to e 
+            minDistance = e.distance(clusters[0].getCentroid())
+            index = 0 
+            for i in range(1, k):
+                distance = e.distance(clusters[i].getCentroid())
+                if distance < minDistance:
+                    minDistance = distance
+                    index = i 
+
+            #Add e to the list of examples for appropriate cluster
+            newClusters[index].append(e)
+
+        for c in newClusters: #avoid having empty clusters
+            if len(c) == 0:
+                raise ValueError('Empty Cluster')
+        
+        #Update each cluster; check if a centroid has changed 
+        converged = True 
+        for i in range(k):
+              if clusters[i].update(newClusters[i]) > 0.0:
+                  converged = False 
+        if verbose:
+            print('Iteration # ' + str(numIterations))
+            for c in clusters:
+                print(c)
+            print(' ')
+
+    return clusters 
+
+
+
+
 def dissimilarity(clusters):
     'Input are cluster objects'
     total_distance = 0
@@ -90,4 +140,12 @@ def dissimilarity(clusters):
     return total_distance
 
 def trykmeans(examples, numClusters, numTrials, verbose = False):
-    
+    '''
+    calls kmeans numTrials times and returns the result with the lowest dissimilarity
+    '''
+    best = kmeans(examples, numClusters, verbose)
+    minDissimilarity = dissimilarity(best)
+    trial = 1
+    while trial < numTrials:
+
+
