@@ -84,3 +84,28 @@ def findKNearest(example, exampleSet, k):
             maxDist = max(distances)
     return kNearest, distances
 
+def kNearestClassify(training, test, label, k):
+    'returns the number of true positives, false positives, true negatives, false negatives'
+    truePos, falsePos, trueNeg, falseNeg = 0,0,0,0
+    for e in test:
+        nearest, distances = findKNearest(e, training, k)
+        #conduct vote
+        numMatch = 0 
+        for i in range(len(nearest)):
+            if nearest[i].getLabel() == label:
+                numMatch += 1 
+        if numMatch > k//2: # guessed the label
+             #compare the example's actual label with the guessed label
+            if e.getLabel() == label:
+                truePos += 1 
+            else:
+                falsePos += 1 
+        else: # guessed not the label
+            if e.getLabel() != label:
+                trueNeg += 1 
+            else:
+                falseNeg += 1 
+    return truePos, falsePos, trueNeg, falseNeg
+
+
+             
